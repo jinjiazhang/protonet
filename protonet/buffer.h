@@ -1,13 +1,13 @@
-#ifndef _JINJIAZHANG_NETBUFFER_H_
-#define _JINJIAZHANG_NETBUFFER_H_
+#ifndef _JINJIAZHANG_BUFFER_H_
+#define _JINJIAZHANG_BUFFER_H_
 
 #include "platform.h"
 
-class netbuffer
+class buffer
 {
 public:
-    netbuffer();
-    ~netbuffer();
+    buffer();
+    ~buffer();
     
     char* data();
     int size();

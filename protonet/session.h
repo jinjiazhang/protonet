@@ -2,7 +2,7 @@
 #define _JINJIAZHANG_SESSION_H_
 
 #include "network.h"
-#include "netbuffer.h"
+#include "buffer.h"
 
 struct ibacker
 {
@@ -33,8 +33,8 @@ private:
     ibacker* backer_;
     network* network_;
 
-    netbuffer recvbuf_;
-    netbuffer sendbuf_;
+    buffer recvbuf_;
+    buffer sendbuf_;
 };
 
 #endif
