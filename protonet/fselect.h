@@ -27,7 +27,6 @@ private:
     fd_set* vec_wi_;
     fd_set* vec_wo_;
     fd_set* vec_eo_;
-
 };
 
 #endif

@@ -24,21 +24,6 @@ bool listener::listen(const char* ip, int port)
     return true;
 }
 
-void listener::on_accept(int number, int error)
-{
-	manager_->on_accept(number, error);
-}
-
-void listener::on_closed(int number, int error)
-{
-    manager_->on_closed(number, error);
-}
-
-void listener::on_package(int number, char* data, int len)
-{
-    manager_->on_package(number, data, len);
-}
-
 void listener::on_event(int events)
 {
     assert(events & EVENT_READ);
@@ -49,7 +34,7 @@ void listener::on_event(int events)
         return;
     }
 
-    session* object = new session(network_, this);
+    session* object = new session(network_, manager_);
     if (!object->init(fd))
     {
         delete object;
@@ -57,7 +42,7 @@ void listener::on_event(int events)
     }
 
     network_->add_object(object);
-    on_accept(object->get_number(), 0);
+    manager_->on_accept(object->get_number(), 0);
 }
 
 void listener::send(char* data, int len)

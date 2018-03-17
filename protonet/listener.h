@@ -4,7 +4,7 @@
 #include "network.h"
 #include "session.h"
 
-class listener : public iobject, imanager
+class listener : public iobject
 {
 public:
     listener(network* instance, imanager* manager);
@@ -12,9 +12,6 @@ public:
 
     bool listen(const char* ip, int port);
 
-	virtual void on_accept(int number, int error);
-    virtual void on_closed(int number, int error);
-    virtual void on_package(int number, char* data, int len);
     virtual void on_event(int events);
     virtual void send(char* data, int len);
     virtual void close();

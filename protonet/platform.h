@@ -39,7 +39,6 @@ int set_reuse_addr(socket_t fd);
 int get_socket_err(socket_t fd);
 int get_socket_err();
 
-
 typedef unsigned long long varint;
 int encode_var(char* data, int len, varint value);
 int decode_var(varint& value, char* data, int len);

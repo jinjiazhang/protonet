@@ -22,7 +22,7 @@ private:
     void on_error(int error);
     void dispatch();
 
-private:
+protected:
     socket_t fd_;
     imanager* manager_;
     network* network_;
