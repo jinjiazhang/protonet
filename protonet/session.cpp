@@ -156,8 +156,8 @@ void session::dispatch()
 {
     for (;;)
     {
-        varint body_len = 0;
-        int head_len = decode_var(body_len, recvbuf_.data(), recvbuf_.size());
+        int body_len = 0;
+        int head_len = decode_var(&body_len, recvbuf_.data(), recvbuf_.size());
         if (head_len < 0)
         {
 			on_error(-4);
@@ -169,20 +169,26 @@ void session::dispatch()
 			break;
 		}
 
-		if (!recvbuf_.expand(head_len + (int)body_len))
+		if (body_len <= 0)
 		{
 			on_error(-5);
 			return;
 		}
 
-        if (recvbuf_.size() < head_len + (int)body_len)
+		if (!recvbuf_.expand(head_len + body_len))
+		{
+			on_error(-6);
+			return;
+		}
+
+        if (recvbuf_.size() < head_len + body_len)
         {
             break;
         }
 
         recvbuf_.pop_data(head_len);
-        manager_->on_package(number_, recvbuf_.data(), (int)body_len);
-        recvbuf_.pop_data((int)body_len);
+        manager_->on_package(number_, recvbuf_.data(), body_len);
+        recvbuf_.pop_data(body_len);
     }
 
     recvbuf_.trim_data();

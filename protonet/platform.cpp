@@ -168,18 +168,18 @@ int get_socket_err()
     return error;
 }
 
-int encode_var(char* data, int len, varint value)
+int encode_var(char* data, int len, int value)
 {
     data[0] = (char)value;
     return 1;
 }
 
-int decode_var(varint& value, char* data, int len)
+int decode_var(int* value, char* data, int len)
 {
     if (len <= 0)
     {
         return 0;
     }
-    value = data[0];
+    *value = data[0];
     return 1;
 }
