@@ -22,7 +22,7 @@ public:
     void trim_data();
 
 private:
-    int lenght_;
+    int preseted_;
     int capacity_;
     char* buffer_;
     char* begin_;

@@ -2,7 +2,7 @@
 
 buffer::buffer()
 {
-    lenght_ = 0xFFFF;
+    preseted_ = 8096;
     capacity_ = 0;
     buffer_ = NULL;
     begin_ = NULL;
@@ -19,13 +19,28 @@ buffer::~buffer()
 
 void buffer::prepare()
 {
-    if (capacity_ < lenght_)
+    if (buffer_ == NULL)
     {
-        buffer_ = new char[lenght_];
+        buffer_ = new char[preseted_];
         begin_ = buffer_;
         end_ = begin_;
-        capacity_ = lenght_;
+        capacity_ = preseted_;
     }
+	else if (capacity_ != preseted_)
+	{
+		char* preset = new char[preseted_];
+		int used = end_ - begin_;
+		if (used > 0)
+		{
+			assert(preseted_ >= used);
+			memcpy(preset, begin_, used);
+		}
+		delete[] buffer_;
+		buffer_ = preset;
+		begin_ = buffer_;
+		end_ = begin_ + used;
+		capacity_ = preseted_;
+	}
 }
 
 char* buffer::data()
@@ -47,6 +62,7 @@ int buffer::space()
 
 bool buffer::expand(int size)
 {
+	preseted_ = preseted_ > size ? preseted_ : size;
 	return true;
 }
 
@@ -91,7 +107,7 @@ bool buffer::pop_space(int len)
 
 void buffer::trim_data()
 {
-    int used = size();
+    int used = end_ - begin_;
     if (used > 0)
     {
         memmove(buffer_, begin_, used);
