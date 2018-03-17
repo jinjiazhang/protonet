@@ -24,6 +24,11 @@ bool listener::listen(const char* ip, int port)
     return true;
 }
 
+void listener::on_accept(int number, int error)
+{
+	manager_->on_accept(number, error);
+}
+
 void listener::on_closed(int number, int error)
 {
     manager_->on_closed(number, error);
@@ -52,7 +57,7 @@ void listener::on_event(int events)
     }
 
     network_->add_object(object);
-    manager_->on_accept(object->get_number(), 0);
+    on_accept(object->get_number(), 0);
 }
 
 void listener::send(char* data, int len)

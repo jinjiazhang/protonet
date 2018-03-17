@@ -99,12 +99,12 @@ int fselect::update(int timeout)
     return 0;
 }
 
-int fselect::add_event(ihandler* handler, socket_t fd, int events)
+int fselect::add_event(iobject* object, socket_t fd, int events)
 {
     handler_map::iterator it = handlers.find(fd);
     if (it == handlers.end())
     {
-        handlers.insert(std::make_pair(fd, handler));
+        handlers.insert(std::make_pair(fd, object));
         if (vec_max_ < (int)handlers.size())
         {
             vec_max_ = handlers.size();
@@ -115,7 +115,7 @@ int fselect::add_event(ihandler* handler, socket_t fd, int events)
             vec_eo_ = fd_set_realloc(vec_eo_, vec_max_);
         }
     }
-    else if (it->second != handler)
+    else if (it->second != object)
     {
         assert(0);
         return -1;
@@ -126,22 +126,22 @@ int fselect::add_event(ihandler* handler, socket_t fd, int events)
     if (events & EVENT_WRITE)
         FD_SET(fd, vec_wi_);
 
-    int exist = handler->get_events();
-    handler->set_events(exist | events);
+    int exist = object->get_events();
+    object->set_events(exist | events);
     return 0;
 }
 
-int fselect::del_event(ihandler* handler, socket_t fd, int events)
+int fselect::del_event(iobject* object, socket_t fd, int events)
 {
     if (events & EVENT_READ)
         FD_CLR(fd, vec_ri_);
     if (events & EVENT_WRITE)
         FD_CLR(fd, vec_wi_);
 
-    int exist = handler->get_events();
-    handler->set_events(exist & (~events));
+    int exist = object->get_events();
+    object->set_events(exist & (~events));
 
-    if (handler->get_events() == 0)
+    if (object->get_events() == 0)
     {
         handlers.erase(fd);
     }

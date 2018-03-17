@@ -4,16 +4,10 @@
 #include "network.h"
 #include "buffer.h"
 
-struct ibacker
-{
-    virtual void on_closed(int number, int error) = 0;
-    virtual void on_package(int number, char* data, int len) = 0;
-};
-
-class session : public iobject, ihandler
+class session : public iobject
 {
 public:
-    session(network* instance, ibacker* backer);
+    session(network* instance, imanager* manager);
     ~session();
 
     bool init(socket_t fd);
@@ -30,7 +24,7 @@ private:
 
 private:
     socket_t fd_;
-    ibacker* backer_;
+    imanager* manager_;
     network* network_;
 
     buffer recvbuf_;

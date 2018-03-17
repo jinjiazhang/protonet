@@ -1,9 +1,9 @@
 #include "session.h"
 
-session::session(network* instance, ibacker* backer)
+session::session(network* instance, imanager* manager)
 {
     network_ = instance;
-    backer_ = backer;
+    manager_ = manager;
 }
 
 session::~session()
@@ -33,7 +33,7 @@ void session::on_event(int events)
 
 void session::on_error(int error)
 {
-    backer_->on_closed(number_, error);
+    manager_->on_closed(number_, error);
 }
 
 void session::on_readable()
@@ -123,7 +123,7 @@ void session::send(char* data, int len)
 
         if (!sendbuf_.push_data(iov, 2, 0))
         {
-            on_error(-1);
+            on_error(-2);
             return;
         }
         network_->add_event(this, fd_, EVENT_WRITE);
@@ -140,7 +140,7 @@ void session::send(char* data, int len)
     {
         if (!sendbuf_.push_data(iov, 2, send_len))
         {
-            on_error(-1);
+            on_error(-3);
             return;
         }
         network_->add_event(this, fd_, EVENT_WRITE);
@@ -158,10 +158,22 @@ void session::dispatch()
     {
         varint body_len = 0;
         int head_len = decode_var(body_len, recvbuf_.data(), recvbuf_.size());
-        if (head_len <= 0)
+        if (head_len < 0)
         {
-            break;
+			on_error(-4);
+            return;
         }
+
+		if (head_len == 0)
+		{
+			break;
+		}
+
+		if (!recvbuf_.expand(head_len + (int)body_len))
+		{
+			on_error(-5);
+			return;
+		}
 
         if (recvbuf_.size() < head_len + (int)body_len)
         {
@@ -169,7 +181,7 @@ void session::dispatch()
         }
 
         recvbuf_.pop_data(head_len);
-        backer_->on_package(number_, recvbuf_.data(), (int)body_len);
+        manager_->on_package(number_, recvbuf_.data(), (int)body_len);
         recvbuf_.pop_data((int)body_len);
     }
 

@@ -45,9 +45,9 @@ int buffer::space()
     return capacity_ - (end_ - buffer_);
 }
 
-void buffer::resize(int size)
+bool buffer::expand(int size)
 {
-
+	return true;
 }
 
 bool buffer::push_data(char* data, int len)

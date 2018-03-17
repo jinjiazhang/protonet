@@ -82,14 +82,14 @@ void network::close(int number)
     object->close();
 }
 
-int network::add_event(ihandler* handler, socket_t fd, int events)
+int network::add_event(iobject* object, socket_t fd, int events)
 {
-    return frame_->add_event(handler, fd, events);
+    return frame_->add_event(object, fd, events);
 }
 
-int network::del_event(ihandler* handler, socket_t fd, int events)
+int network::del_event(iobject* object, socket_t fd, int events)
 {
-    return frame_->del_event(handler, fd, events);
+    return frame_->del_event(object, fd, events);
 }
 
 int network::new_number()

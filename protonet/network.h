@@ -4,23 +4,25 @@
 #include "inetwork.h"
 #include "platform.h"
 
-enum
-{
-    EVENT_READ = 0x01,
-    EVENT_WRITE = 0x04,
-};
+#define EVENT_READ		0x01
+#define EVENT_WRITE		0x04
 
-struct ihandler
+struct iobject
 {
-    ihandler() { events_ = 0; }
-    virtual ~ihandler() { }
-    int get_events() { return events_; }
-    void set_events(int events) { events_ = events; }
+	iobject() { number_ = 0; events_ = 0; }
+	virtual ~iobject() { }
+	int get_number() { return number_; }
+	void set_number(int number) { number_ = number; }
+	int get_events() { return events_; }
+	void set_events(int events) { events_ = events; }
 
-    virtual void on_event(int events) = 0;
+	virtual void on_event(int events) = 0;
+	virtual void send(char* data, int len) = 0;
+	virtual void close() = 0;
 
 protected:
-    int events_;
+	int number_;
+	int events_;
 };
 
 struct iframe
@@ -28,22 +30,8 @@ struct iframe
     virtual bool init() = 0;
     virtual void release() = 0;
     virtual int update(int timeout) = 0;
-    virtual int add_event(ihandler* handler, socket_t fd, int events) = 0;
-    virtual int del_event(ihandler* handler, socket_t fd, int events) = 0;
-};
-
-struct iobject
-{
-    iobject() { number_ = 0; }
-    virtual ~iobject() { }
-    int get_number() { return number_; }
-    void set_number(int number) { number_ = number; }
-
-    virtual void send(char* data, int len) = 0;
-    virtual void close() = 0;
-
-protected:
-    int number_;
+    virtual int add_event(iobject* object, socket_t fd, int events) = 0;
+    virtual int del_event(iobject* object, socket_t fd, int events) = 0;
 };
 
 class network : public inetwork
@@ -61,8 +49,8 @@ public:
     virtual void release();
 
 public:
-    int add_event(ihandler* handler, socket_t fd, int events);
-    int del_event(ihandler* handler, socket_t fd, int events);
+    int add_event(iobject* object, socket_t fd, int events);
+    int del_event(iobject* object, socket_t fd, int events);
 
     int new_number();
     int add_object(iobject* object);

@@ -14,12 +14,12 @@ public:
     int space();
     
     void prepare();
-    void resize(int size);
+    bool expand(int size);
     bool push_data(char* data, int len);
     bool push_data(iovec *iov, int cnt, int ignore);
     bool pop_data(int len);
     bool pop_space(int len);
-    void trim_data();    
+    void trim_data();
 
 private:
     int lenght_;
