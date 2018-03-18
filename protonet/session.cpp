@@ -40,7 +40,7 @@ void session::on_readable()
 {
     for (;;)
     {
-        int recv_len = recv_data(fd_, recvbuf_.data(), recvbuf_.space());
+        int recv_len = recv_data(fd_, recvbuf_.tail(), recvbuf_.space());
         if (recv_len < 0)
         {
             int error = get_socket_err();

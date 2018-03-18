@@ -34,9 +34,10 @@ public:
             return;
         }
 
-        int serial = 1;
-        printf("on_accept number: %d, send: %d", number, serial);
-        network_->send(number, (char*)&serial, sizeof(serial));
+		for (int serial = 1; serial < 10000; serial++)
+		{
+			network_->send(number, (char*)&serial, sizeof(serial));
+		}
     }
 
     virtual void on_closed(int number, int error)
@@ -47,7 +48,8 @@ public:
     virtual void on_package(int number, char* data, int len)
     {
         int serial = *(int*)data;
-        printf("on_package number: %d, recv: %d, send: %d\n", number, serial, ++serial);
+        printf("number: %d, recv: %d, send: %d\n", number, serial, serial + 1);
+		serial++;
         network_->send(number, (char*)&serial, sizeof(serial));
     }
 

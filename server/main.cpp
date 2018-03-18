@@ -39,7 +39,8 @@ public:
     virtual void on_package(int number, char* data, int len)
     {
         int serial = *(int*)data;
-        printf("number: %d, recv: %d, send: %d\n", number, serial, ++serial);
+        printf("number: %d, recv: %d, send: %d\n", number, serial, serial + 1);
+		serial++;
         network_->send(number, (char*)&serial, sizeof(serial));
     }
 

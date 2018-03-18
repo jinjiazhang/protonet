@@ -54,6 +54,12 @@ int buffer::size()
     return end_ - begin_;
 }
 
+char* buffer::tail()
+{
+	prepare();
+	return end_;
+}
+
 int buffer::space()
 {
     prepare();

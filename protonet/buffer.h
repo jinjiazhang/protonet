@@ -11,6 +11,8 @@ public:
     
     char* data();
     int size();
+
+	char* tail();
     int space();
     
     void prepare();
