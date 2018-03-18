@@ -62,17 +62,18 @@ int buffer::space()
 
 bool buffer::expand(int size)
 {
-	preseted_ = preseted_ > size ? preseted_ : size;
+	preseted_ = std::max<int>(preseted_, size);
 	return true;
 }
 
 bool buffer::push_data(char* data, int len)
 {
-    if (len > space())
+    if (!expand(size() + len))
     {
         return false;
     }
 
+	prepare();
     memcpy(end_, data, len);
     end_ += len;
     return true;
@@ -80,6 +81,20 @@ bool buffer::push_data(char* data, int len)
 
 bool buffer::push_data(iovec *iov, int cnt, int ignore)
 {
+	int pushed = 0;
+	for (int i = 0; i < cnt; i++, iov++)
+	{
+		if (ignore < (int)iov->iov_len)
+		{
+			if (!push_data(iov->iov_base + ignore, iov->iov_len - ignore))
+			{
+				end_ -= pushed;
+				return false;
+			}
+			pushed += iov->iov_len - ignore;
+		}
+		ignore = std::max<int>(0, ignore - iov->iov_len);
+	}
     return true;
 }
 
