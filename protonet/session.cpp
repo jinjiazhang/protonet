@@ -38,7 +38,7 @@ void session::on_error(int error)
 
 void session::on_readable()
 {
-    for (;;)
+    while (true)
     {
         int recv_len = recv_data(fd_, recvbuf_.tail(), recvbuf_.space());
         if (recv_len < 0)
@@ -154,7 +154,7 @@ void session::close()
 
 void session::dispatch()
 {
-    for (;;)
+    while (recvbuf_.size() > 0)
     {
         int body_len = 0;
         int head_len = decode_var(&body_len, recvbuf_.data(), recvbuf_.size());
