@@ -34,6 +34,7 @@ void session::on_event(int events)
 void session::on_error(int error)
 {
     manager_->on_closed(number_, error);
+    network_->close(number_);
 }
 
 void session::on_readable()
@@ -152,7 +153,12 @@ void session::send(char* data, int len)
 
 void session::close()
 {
-
+    if (fd_ >= 0)
+    {
+        network_->del_event(this, fd_, events_);
+        close_socket(fd_);
+        fd_ = -1;
+    }
 }
 
 void session::dispatch()

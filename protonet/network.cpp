@@ -80,6 +80,8 @@ void network::close(int number)
         return;
     }
     object->close();
+    del_object(object);
+    delete object;
 }
 
 int network::add_event(iobject* object, socket_t fd, int events)

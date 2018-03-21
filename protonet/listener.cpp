@@ -47,10 +47,15 @@ void listener::on_event(int events)
 
 void listener::send(char* data, int len)
 {
-
+    return;
 }
 
 void listener::close()
 {
-
+    if (listenfd_ >= 0)
+    {
+        network_->del_event(this, listenfd_, events_);
+        close_socket(listenfd_);
+        listenfd_ = -1;
+    }
 }

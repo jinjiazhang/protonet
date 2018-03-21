@@ -17,6 +17,9 @@ public:
     virtual void close();
 
 private:
+    void on_error(int error);
+
+private:
     socket_t connectfd_;
     bool connected_;
 };
