@@ -68,8 +68,30 @@ int buffer::space()
 
 bool buffer::expand(int size)
 {
-	preseted_ = std::max<int>(preseted_, size);
-	return true;
+    if (size <= 0)
+    {
+        if (buffer_)
+        {
+            delete[] buffer_;
+            buffer_ = NULL;
+            begin_ = NULL;
+            end_ = NULL;
+            capacity_ = 0;
+        }
+        return true;
+    }
+    else if (size < 0x800000)
+    {
+        while (preseted_ < size)
+        {
+            preseted_ = preseted_ * 2;
+        }
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 bool buffer::push_data(char* data, int len)

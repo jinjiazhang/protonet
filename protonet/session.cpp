@@ -47,8 +47,9 @@ void session::on_readable()
             if (error != 0)
             {
                 on_error(error);
+                return;
             }
-            return;
+            break;
         }
         
         if (recv_len == 0)
@@ -73,8 +74,9 @@ void session::on_writable()
             if (error != 0)
             {
                 on_error(error);
+                return;
             }
-            return;
+            break;
         }
 
         if (send_len == 0)
@@ -88,6 +90,7 @@ void session::on_writable()
 
     if (sendbuf_.size() <= 0)
     {
+        sendbuf_.expand(0);
         network_->del_event(this, fd_, EVENT_WRITE);
     }
 }
