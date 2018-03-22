@@ -37,6 +37,7 @@ public:
 		for (int serial = 1; serial < 10000; serial++)
 		{
 			network_->send(number, (char*)&serial, sizeof(serial));
+            break;
 		}
     }
 
