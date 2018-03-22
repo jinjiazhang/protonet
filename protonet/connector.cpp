@@ -26,11 +26,11 @@ bool connector::connect(const char* ip, int port)
 
 void connector::on_event(int events)
 {
-	if (connected_)
-	{
-		session::on_event(events);
-		return;
-	}
+    if (connected_)
+    {
+        session::on_event(events);
+        return;
+    }
 
     assert(events & EVENT_WRITE);
     int error = get_socket_err(connectfd_);
@@ -43,11 +43,11 @@ void connector::on_event(int events)
     network_->del_event(this, connectfd_, EVENT_WRITE);
     if (!this->init(connectfd_))
     {
-		on_error(-1);
-		return;
+        on_error(-1);
+        return;
     }
 
-	connected_ = true;
+    connected_ = true;
     manager_->on_accept(number_, 0);
 }
 
@@ -61,7 +61,7 @@ void connector::send(char* data, int len)
 {
     if (connected_)
     {
-		session::send(data, len);
+        session::send(data, len);
     }
 }
 

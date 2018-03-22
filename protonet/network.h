@@ -4,25 +4,25 @@
 #include "inetwork.h"
 #include "platform.h"
 
-#define EVENT_READ		0x01
-#define EVENT_WRITE		0x04
+#define EVENT_READ        0x01
+#define EVENT_WRITE        0x04
 
 struct iobject
 {
-	iobject() { number_ = 0; events_ = 0; }
-	virtual ~iobject() { }
-	int get_number() { return number_; }
-	void set_number(int number) { number_ = number; }
-	int get_events() { return events_; }
-	void set_events(int events) { events_ = events; }
+    iobject() { number_ = 0; events_ = 0; }
+    virtual ~iobject() { }
+    int get_number() { return number_; }
+    void set_number(int number) { number_ = number; }
+    int get_events() { return events_; }
+    void set_events(int events) { events_ = events; }
 
-	virtual void on_event(int events) = 0;
-	virtual void send(char* data, int len) = 0;
-	virtual void close() = 0;
+    virtual void on_event(int events) = 0;
+    virtual void send(char* data, int len) = 0;
+    virtual void close() = 0;
 
 protected:
-	int number_;
-	int events_;
+    int number_;
+    int events_;
 };
 
 struct iframe

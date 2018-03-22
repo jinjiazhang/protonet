@@ -12,7 +12,7 @@ public:
     char* data();
     int size();
 
-	char* tail();
+    char* tail();
     int space();
     
     void prepare();

@@ -26,21 +26,21 @@ void buffer::prepare()
         end_ = begin_;
         capacity_ = preseted_;
     }
-	else if (capacity_ != preseted_)
-	{
-		char* preset = new char[preseted_];
-		int used = end_ - begin_;
-		if (used > 0)
-		{
-			assert(preseted_ >= used);
-			memcpy(preset, begin_, used);
-		}
-		delete[] buffer_;
-		buffer_ = preset;
-		begin_ = buffer_;
-		end_ = begin_ + used;
-		capacity_ = preseted_;
-	}
+    else if (capacity_ != preseted_)
+    {
+        char* preset = new char[preseted_];
+        int used = end_ - begin_;
+        if (used > 0)
+        {
+            assert(preseted_ >= used);
+            memcpy(preset, begin_, used);
+        }
+        delete[] buffer_;
+        buffer_ = preset;
+        begin_ = buffer_;
+        end_ = begin_ + used;
+        capacity_ = preseted_;
+    }
 }
 
 char* buffer::data()
@@ -56,8 +56,8 @@ int buffer::size()
 
 char* buffer::tail()
 {
-	prepare();
-	return end_;
+    prepare();
+    return end_;
 }
 
 int buffer::space()
@@ -101,7 +101,7 @@ bool buffer::push_data(char* data, int len)
         return false;
     }
 
-	prepare();
+    prepare();
     memcpy(end_, data, len);
     end_ += len;
     return true;
@@ -109,20 +109,20 @@ bool buffer::push_data(char* data, int len)
 
 bool buffer::push_data(iovec *iov, int cnt, int ignore)
 {
-	int pushed = 0;
-	for (int i = 0; i < cnt; i++, iov++)
-	{
-		if (ignore < (int)iov->iov_len)
-		{
-			if (!push_data((char*)iov->iov_base + ignore, iov->iov_len - ignore))
-			{
-				end_ -= pushed;
-				return false;
-			}
-			pushed += iov->iov_len - ignore;
-		}
-		ignore = std::max<int>(0, ignore - iov->iov_len);
-	}
+    int pushed = 0;
+    for (int i = 0; i < cnt; i++, iov++)
+    {
+        if (ignore < (int)iov->iov_len)
+        {
+            if (!push_data((char*)iov->iov_base + ignore, iov->iov_len - ignore))
+            {
+                end_ -= pushed;
+                return false;
+            }
+            pushed += iov->iov_len - ignore;
+        }
+        ignore = std::max<int>(0, ignore - iov->iov_len);
+    }
     return true;
 }
 

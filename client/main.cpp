@@ -35,11 +35,11 @@ public:
             return;
         }
 
-		for (int serial = 1; serial < 10000; serial++)
-		{
-			network_->send(number, (char*)&serial, sizeof(serial));
+        for (int serial = 1; serial < 10000; serial++)
+        {
+            network_->send(number, (char*)&serial, sizeof(serial));
             break;
-		}
+        }
     }
 
     virtual void on_closed(int number, int error)
@@ -51,7 +51,7 @@ public:
     {
         int serial = *(int*)data;
         printf("number: %d, recv: %d, send: %d\n", number, serial, serial + 1);
-		serial++;
+        serial++;
         network_->send(number, (char*)&serial, sizeof(serial));
     }
 

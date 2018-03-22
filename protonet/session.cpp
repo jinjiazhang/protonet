@@ -169,26 +169,26 @@ void session::dispatch()
         int head_len = decode_var(&body_len, recvbuf_.data(), recvbuf_.size());
         if (head_len < 0)
         {
-			on_error(-4);
+            on_error(-4);
             return;
         }
 
-		if (head_len == 0)
-		{
-			break;
-		}
+        if (head_len == 0)
+        {
+            break;
+        }
 
-		if (body_len <= 0)
-		{
-			on_error(-5);
-			return;
-		}
+        if (body_len <= 0)
+        {
+            on_error(-5);
+            return;
+        }
 
-		if (!recvbuf_.expand(head_len + body_len))
-		{
-			on_error(-6);
-			return;
-		}
+        if (!recvbuf_.expand(head_len + body_len))
+        {
+            on_error(-6);
+            return;
+        }
 
         if (recvbuf_.size() < head_len + body_len)
         {
