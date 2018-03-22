@@ -4,7 +4,7 @@ BIN_PATH = ../bin
 LIB = 
 
 CC = g++
-CC_FLAG = 
+CC_FLAG = -g
 LINK_FLAG = 
 
 PRG = libprotonet.a

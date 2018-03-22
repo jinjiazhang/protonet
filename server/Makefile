@@ -4,7 +4,7 @@ BIN_PATH = ../bin
 LIB = protonet pthread
 
 CC = g++
-CC_FLAG = 
+CC_FLAG = -g
 LINK_FLAG = 
 
 PRG = server

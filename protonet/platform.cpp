@@ -154,13 +154,13 @@ int get_socket_err()
 {
 #ifdef linux
     int error = errno;
-    if (error == 0 || error == EINTR || error == EAGAIN)
+    if (error == 0 || error == EINTR || error == EAGAIN || error == EINPROGRESS)
     {
         return 0;
     }
 #else
     int error = WSAGetLastError();
-    if (error == 0 || error == WSAEINTR || error == WSAEWOULDBLOCK)
+    if (error == 0 || error == WSAEINTR || error == WSAEWOULDBLOCK || error == WSAEINPROGRESS)
     {
         return 0;
     }
