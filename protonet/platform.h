@@ -2,6 +2,7 @@
 #define _JINJIAZHANG_PLATFORM_H_
 
 #include <map>
+#include <string.h>
 #include <algorithm>
 #include <assert.h>
 
@@ -11,6 +12,7 @@
 #include <sys/epoll.h>
 #include <sys/uio.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>

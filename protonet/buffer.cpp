@@ -114,7 +114,7 @@ bool buffer::push_data(iovec *iov, int cnt, int ignore)
 	{
 		if (ignore < (int)iov->iov_len)
 		{
-			if (!push_data(iov->iov_base + ignore, iov->iov_len - ignore))
+			if (!push_data((char*)iov->iov_base + ignore, iov->iov_len - ignore))
 			{
 				end_ -= pushed;
 				return false;

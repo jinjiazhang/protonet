@@ -7,7 +7,7 @@ CC = g++
 CC_FLAG = 
 LINK_FLAG = 
 
-PRG = protonet.a
+PRG = libprotonet.a
 OBJ = buffer.o connector.o fepoll.o fselect.o listener.o network.o platform.o session.o
 
 all:$(PRG)
