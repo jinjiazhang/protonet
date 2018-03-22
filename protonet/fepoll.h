@@ -5,6 +5,7 @@
 
 class fepoll : public iframe
 {
+#ifdef linux
 public:
     fepoll();
     ~fepoll();
@@ -16,7 +17,9 @@ public:
     virtual int del_event(iobject* object, socket_t fd, int events);
 
 private:
-
+    int epfd_;
+#endif
 };
+#
 
 #endif

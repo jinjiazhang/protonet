@@ -78,6 +78,7 @@ void connector::close()
             network_->del_event(this, connectfd_, events_);
             close_socket(connectfd_);
             connectfd_ = -1;
+            connected_ = false;
         }
     }
 }

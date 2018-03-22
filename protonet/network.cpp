@@ -17,6 +17,11 @@ network::~network()
 
 void network::release()
 {
+    if (frame_)
+    {
+        frame_->release();
+        frame_ = NULL;
+    }
     delete this;
 }
 

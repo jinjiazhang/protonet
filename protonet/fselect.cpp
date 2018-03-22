@@ -1,5 +1,6 @@
 #include "fselect.h"
 
+#ifdef _MSC_VER
 static fd_set* fd_set_malloc(int amount)
 {
     size_t size = sizeof(fd_set) + (amount-FD_SETSIZE) * sizeof(socket_t);
@@ -126,8 +127,8 @@ int fselect::add_event(iobject* object, socket_t fd, int events)
     if (events & EVENT_WRITE)
         FD_SET(fd, vec_wi_);
 
-    int exist = object->get_events();
-    object->set_events(exist | events);
+    int exists = object->get_events();
+    object->set_events(exists | events);
     return 0;
 }
 
@@ -138,8 +139,8 @@ int fselect::del_event(iobject* object, socket_t fd, int events)
     if (events & EVENT_WRITE)
         FD_CLR(fd, vec_wi_);
 
-    int exist = object->get_events();
-    object->set_events(exist & (~events));
+    int exists = object->get_events();
+    object->set_events(exists & (~events));
 
     if (object->get_events() == 0)
     {
@@ -158,3 +159,4 @@ void fselect::fire_event(socket_t fd, int events)
     }
     it->second->on_event(events);
 }
+#endif

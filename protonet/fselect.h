@@ -5,6 +5,7 @@
 
 class fselect : public iframe
 {
+#ifdef _MSC_VER
 public:
     fselect();
     ~fselect();
@@ -27,6 +28,7 @@ private:
     fd_set* vec_wi_;
     fd_set* vec_wo_;
     fd_set* vec_eo_;
+#endif
 };
 
 #endif
