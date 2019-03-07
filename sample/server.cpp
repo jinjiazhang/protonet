@@ -14,18 +14,17 @@ public:
             network_->update(10);
     }
 
-    virtual void on_accept(int number, int error)
+    void on_accept(int number, int error) override
     {
         printf("on_accept number: %d, error: %d\n", number, error);
     }
 
-    virtual void on_closed(int number, int error)
+    void on_closed(int number, int error) override
     {
         closed_ = true;
-        printf("on_closed number: %d, error: %d\n", number, error);
     }
 
-    virtual void on_package(int number, char* data, int len)
+    void on_package(int number, char* data, int len) override
     {
         printf("number: %d, recv: %s\n", number, data);
         network_->send(number, data, len);
