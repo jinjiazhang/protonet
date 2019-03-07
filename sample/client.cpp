@@ -5,60 +5,34 @@
 class clinet : public imanager
 {
 public:
-    clinet()
-    {
-        network_ = NULL;
-        closed_ = false;
-        connect_ = 0;
-    }
-
     void run()
     {
         network_ = create_network();
-        connect_ = network_->connect(this, "127.0.0.1", 8086);
-        if (connect_ <= 0)
-        {
-            return;
-        }
+        network_->connect(this, "127.0.0.1", 8086);
 
         while (!closed_)
-        {
             network_->update(10);
-        }
     }
 
-    virtual void on_accept(int number, int error)
+    void on_accept(int number, int error) override
     {
-        if (error != 0)
-        {
-            closed_ = true;
-            return;
-        }
-
-        for (int serial = 1; serial < 10000; serial++)
-        {
-            network_->send(number, (char*)&serial, sizeof(serial));
-            break;
-        }
+        const char* data = "hello world!";
+        network_->send(number, (char*)data, strlen(data) + 1);
     }
 
-    virtual void on_closed(int number, int error)
+    void on_closed(int number, int error) override
     {
         closed_ = true;
     }
 
-    virtual void on_package(int number, char* data, int len)
+    void on_package(int number, char* data, int len) override
     {
-        int serial = *(int*)data;
-        printf("number: %d, recv: %d, send: %d\n", number, serial, serial + 1);
-        serial++;
-        network_->send(number, (char*)&serial, sizeof(serial));
+        printf("number: %d, recv: %s\n", number, data);
     }
 
 private:
-    inetwork* network_;
-    bool closed_;
-    int connect_;
+    inetwork* network_ = nullptr;
+    bool closed_ = false;
 };
 
 int main()
