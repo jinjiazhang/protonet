@@ -9,7 +9,10 @@ public:
     void run()
     {
         network_ = create_network();
-        network_->connect(this, "127.0.0.1", 8086);
+        int number = network_->connect(this, "127.0.0.1", 8086);
+
+        std::string content = "hello world!";
+        network_->send(number, content.c_str(), content.length() + 1);
 
         while (!closed_)
             network_->update(10);
@@ -17,8 +20,7 @@ public:
 
     void on_accept(int number, int error) override
     {
-        std::string content = "hello world!";
-        network_->send(number, content.c_str(), content.length() + 1);
+        
     }
 
     void on_closed(int number, int error) override
