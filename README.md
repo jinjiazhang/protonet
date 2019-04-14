@@ -4,8 +4,9 @@ Protonet
 https://github.com/jinjiazhang/protonet/
 
 ## Overview
-Cross Platform Network Frame for Client and Server
+Cross Platform Network Frame for Client and Server<br>
 
+## Interface
 ```C
 struct iobuf
 {
@@ -30,4 +31,6 @@ struct inetwork
     virtual void close(int number) = 0;
     virtual void release() = 0;
 };
+
+inetwork* create_network();
 ```
