@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <iostream>
+#include <string>
 #include "inetwork.h"
 
 class clinet : public imanager
@@ -16,8 +17,8 @@ public:
 
     void on_accept(int number, int error) override
     {
-        const char* data = "hello world!";
-        network_->send(number, (char*)data, strlen(data) + 1);
+        std::string content = "hello world!";
+        network_->send(number, content.c_str(), content.length() + 1);
     }
 
     void on_closed(int number, int error) override
