@@ -5,8 +5,7 @@
 #include "platform.h"
 
 #define EVENT_READ        0x01
-#define EVENT_WRITE        0x04
-#define EVENT_ERROR        0x08
+#define EVENT_WRITE       0x04
 
 struct iobject
 {
@@ -17,9 +16,10 @@ struct iobject
     int get_events() { return events_; }
     void set_events(int events) { events_ = events; }
 
-    virtual void on_event(int events, int param) = 0;
-    virtual void send(char* data, int len) = 0;
-    virtual void close() = 0;
+    virtual void on_event(int events) { }
+    virtual void send(const void* data, int len) { }
+    virtual void sendv(iobuf bufs[], int count) { }
+    virtual void close() { }
 
 protected:
     int number_;
@@ -45,14 +45,14 @@ public:
     virtual int update(int timeout);
     virtual int listen(imanager* manager, const char* ip, int port);
     virtual int connect(imanager* manager, const char* ip, int port);
-    virtual void send(int number, char* data, int len);
+    virtual void send(int number, const void* data, int len);
+    virtual void sendv(int number, iobuf bufs[], int count);
     virtual void close(int number);
     virtual void release();
 
 public:
     int add_event(iobject* object, socket_t fd, int events);
     int del_event(iobject* object, socket_t fd, int events);
-    int mark_error(iobject* object, int error);
 
     int new_number();
     int add_object(iobject* object);
@@ -61,10 +61,8 @@ public:
 
 private:
     typedef std::map<int, iobject*> object_map;
-    typedef std::map<iobject*, int> object_err;
 
     object_map objects_;
-    object_err errors_;
     int last_number_;
     iframe* frame_;
 };

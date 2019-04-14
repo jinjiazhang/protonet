@@ -1,9 +1,11 @@
 #include "session.h"
+#include <vector>
 
 session::session(network* instance, imanager* manager)
 {
     network_ = instance;
     manager_ = manager;
+    closed_ = false;
 }
 
 session::~session()
@@ -18,14 +20,8 @@ bool session::init(socket_t fd)
     return true;
 }
 
-void session::on_event(int events, int param)
+void session::on_event(int events)
 {
-    if (events & EVENT_ERROR)
-    {
-        manager_->on_closed(number_, param);
-        return;
-    }
-
     if (events & EVENT_READ)
     {
         on_readable();
@@ -39,12 +35,13 @@ void session::on_event(int events, int param)
 
 void session::on_error(int error)
 {
-    network_->mark_error(this, error);
+    manager_->on_closed(number_, error);
+    network_->close(number_);
 }
 
 void session::on_readable()
 {
-    while (true)
+    while (!closed_)
     {
         int recv_len = recv_data(fd_, recvbuf_.tail(), recvbuf_.space());
         if (recv_len < 0)
@@ -71,7 +68,7 @@ void session::on_readable()
 
 void session::on_writable()
 {
-    while (sendbuf_.size() > 0)
+    while (!closed_ && sendbuf_.size() > 0)
     {
         int send_len = send_data(fd_, sendbuf_.data(), sendbuf_.size());
         if (send_len < 0)
@@ -101,26 +98,48 @@ void session::on_writable()
     }
 }
 
-void session::send(char* data, int len)
+void session::send(const void* data, int len)
 {
-    char head[16];
-    int head_len = encode_var(head, sizeof(head), len);
+    char head_data[16];
+    int head_len = encode_var(head_data, sizeof(head_data), len);
     iovec iov[2];
-    iov[0].iov_base = head;
+    iov[0].iov_base = head_data;
     iov[0].iov_len = head_len;
-    iov[1].iov_base = data;
+    iov[1].iov_base = (char*)data;
     iov[1].iov_len = len;
+    transmit(iov, 2);
+}
 
+void session::sendv(iobuf bufs[], int count)
+{
+    int total = 0;
+    std::vector<iovec> iov(count + 1);
+    for (int i = 0; i < count; i++)
+    {
+        iov[i+1].iov_base = (char*)bufs[i].data;
+        iov[i+1].iov_len = bufs[i].len;
+        total += bufs[i].len;
+    }
+
+    char head_data[16];
+    int head_len = encode_var(head_data, sizeof(head_data), total);
+    iov[0].iov_base = head_data;
+    iov[0].iov_len = head_len;
+    transmit(iov.data(), iov.size());
+}
+
+void session::transmit(iovec* iov, int iovcnt)
+{
     if (sendbuf_.size() > 0)
     {
-        if (!sendbuf_.push_data(iov, 2, 0))
+        if (!sendbuf_.push_data(iov, iovcnt, 0))
         {
             on_error(-1);
         }
         return;
     }
 
-    int send_len = send_iovec(fd_, iov, 2);
+    int send_len = send_iovec(fd_, iov, iovcnt);
     if (send_len < 0)
     {
         int error = get_socket_err();
@@ -130,7 +149,7 @@ void session::send(char* data, int len)
             return;
         }
 
-        if (!sendbuf_.push_data(iov, 2, 0))
+        if (!sendbuf_.push_data(iov, iovcnt, 0))
         {
             on_error(-2);
             return;
@@ -145,9 +164,15 @@ void session::send(char* data, int len)
         return;
     }
 
-    if (send_len < head_len + len)
+    int total = 0;
+    for (int i = 0; i < iovcnt; i++)
     {
-        if (!sendbuf_.push_data(iov, 2, send_len))
+        total += iov[i].iov_len;
+    }
+
+    if (send_len < total)
+    {
+        if (!sendbuf_.push_data(iov, iovcnt, send_len))
         {
             on_error(-3);
             return;
@@ -164,11 +189,13 @@ void session::close()
         close_socket(fd_);
         fd_ = -1;
     }
+
+    closed_ = true;
 }
 
 void session::dispatch()
 {
-    while (recvbuf_.size() > 0)
+    while (!closed_ && recvbuf_.size() > 0)
     {
         int body_len = 0;
         int head_len = decode_var(&body_len, recvbuf_.data(), recvbuf_.size());

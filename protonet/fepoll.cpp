@@ -1,6 +1,6 @@
 #include "fepoll.h"
 
-#ifdef linux
+#ifdef __linux__
 fepoll::fepoll()
 {
     epfd_ = -1;
@@ -40,7 +40,7 @@ int fepoll::update(int timeout)
     {
         unsigned int events = results[i].events;
         iobject* handler = (iobject*)results[i].data.ptr;
-        handler->on_event(events, 0);
+        handler->on_event(events);
     }
     return 0;
 }

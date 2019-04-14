@@ -27,7 +27,7 @@ void network::release()
 
 bool network::init()
 {
-#ifdef linux
+#ifdef __linux__
     frame_ = new fepoll();
 #else
     frame_ = new fselect();
@@ -42,18 +42,7 @@ bool network::init()
 
 int network::update(int timeout)
 {
-    int ret = frame_->update(timeout);
-    
-    object_err::iterator it = errors_.begin();
-    while (it != errors_.end())
-    {
-        iobject* object = it->first;
-        object->on_event(EVENT_ERROR, it->second);
-        close(object->get_number());
-        errors_.erase(it++);
-    }
-
-    return ret;
+    return frame_->update(timeout);
 }
 
 int network::listen(imanager* manager, const char* ip, int port)
@@ -78,7 +67,7 @@ int network::connect(imanager* manager, const char* ip, int port)
     return add_object(object);
 }
 
-void network::send(int number, char* data, int len)
+void network::send(int number, const void* data, int len)
 {
     iobject* object = get_object(number);
     if (!object)
@@ -86,6 +75,16 @@ void network::send(int number, char* data, int len)
         return;
     }
     object->send(data, len);
+}
+
+void network::sendv(int number, iobuf bufs[], int count)
+{
+    iobject* object = get_object(number);
+    if (!object)
+    {
+        return;
+    }
+    object->send(bufs, count);
 }
 
 void network::close(int number)
@@ -97,7 +96,6 @@ void network::close(int number)
     }
     object->close();
     del_object(object);
-    delete object;
 }
 
 int network::add_event(iobject* object, socket_t fd, int events)
@@ -108,17 +106,6 @@ int network::add_event(iobject* object, socket_t fd, int events)
 int network::del_event(iobject* object, socket_t fd, int events)
 {
     return frame_->del_event(object, fd, events);
-}
-
-int network::mark_error(iobject* object, int error)
-{
-    if (errors_.find(object) != errors_.end())
-    {
-        return -1;
-    }
-
-    errors_.insert(std::make_pair(object, error));
-    return 0;
 }
 
 int network::new_number()
@@ -139,6 +126,7 @@ int network::del_object(iobject* object)
 {
     assert(object->get_number() != 0);
     objects_.erase(object->get_number());
+    delete object;
     return 0;
 }
 
