@@ -3,6 +3,7 @@
 #include <vector>
 
 session::session(network* instance, imanager* manager)
+    : recvbuf_(8096), sendbuf_(0)
 {
     fd_ = -1;
     network_ = instance;
@@ -96,7 +97,7 @@ void session::on_writable()
 
     if (sendbuf_.size() <= 0)
     {
-        sendbuf_.expand(0);
+        sendbuf_.shrink();
         network_->del_event(this, fd_, EVENT_WRITE);
     }
 }
@@ -213,18 +214,13 @@ void session::dispatch()
             break;
         }
 
-        if (body_len <= 0)
+        if (body_len <= 0 || body_len > max_buffer_size)
         {
             on_error(-5);
             return;
         }
 
-        if (!recvbuf_.expand(head_len + body_len))
-        {
-            on_error(-6);
-            return;
-        }
-
+        recvbuf_.reserve(head_len + body_len);
         if (recvbuf_.size() < head_len + body_len)
         {
             break;
