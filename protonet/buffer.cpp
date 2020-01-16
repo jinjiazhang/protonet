@@ -25,6 +25,9 @@ buffer::~buffer()
     {
         free(buffer_);
         buffer_ = NULL;
+        begin_ = NULL;
+        end_ = NULL;
+        capacity_ = 0;
     }
 }
 
