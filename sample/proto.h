@@ -2,8 +2,15 @@
 
 enum {
     MSG_NONE,
-    MSG_LOGIN,
-    MSG_JOIN_GAME,
+    MSG_LOGIN_REQ,
+    MSG_LOGIN_RSP,
+    MSG_JOIN_REQ,
+    MSG_JOIN_RSP,
+    MSG_JOIN_NTF,
+    MSG_ACTION_REQ,
+    MSG_ACTION_RSP,
+    MSG_ACTION_NTF,
+    MSG_STATUS_NTF,
 };
 
 struct message {
@@ -21,19 +28,46 @@ struct login_rsp {
     char name[32];
 };
 
-struct join_game_req {
+struct join_req {
     int gameid;
 };
 
-struct join_game_rsp {
+struct join_rsp {
     int result;
+    int gameid;
 };
 
-struct join_game_ntf {
+struct join_ntf {
     int userid;
     char name[32];
 };
 
-struct game_status {
+struct action_req {
+    int row;
+    int col;
+};
 
+struct action_rsp {
+    int result;
+};
+
+struct action_ntf {
+    int userid;
+    char name[32];
+    int row;
+    int col;
+};
+
+enum {
+    STATE_WAITING,
+    STATE_PLAYING,
+    STATE_FINISH,
+};
+
+struct status_ntf {
+    int gameid;
+    int state;
+    char chesses[255];
+    int userid;
+    char name[32];
 };

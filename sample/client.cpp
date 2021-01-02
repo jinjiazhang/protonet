@@ -4,6 +4,7 @@
 
 #include "inetwork.h"
 #include "proto.h"
+#include "utils.h"
 
 class clinet : public imanager
 {
@@ -22,10 +23,11 @@ public:
         assert(error == 0);
         number_ = number;
         printf("连接服务器成功\n");
-        printf("请给自己起个名字：");
+
         login_req req = { 0 };
+        printf("请给自己起个名字：");
         scanf("%s", req.name);
-        send_message(MSG_LOGIN, &req, sizeof(req));
+        send_message(MSG_LOGIN_REQ, &req, sizeof(req));
     }
 
     void on_closed(int number, int error) override
@@ -38,24 +40,78 @@ public:
         message* _msg = (message*)data;
         switch (_msg->msgid)
         {
-        case MSG_LOGIN:
+        case MSG_LOGIN_RSP:
         {
             login_rsp* rsp = (login_rsp*)_msg->body;
             assert(rsp->result == 0);
             
             userid_ = rsp->userid;
             printf("登录游戏成功，你的ID为%d\n", userid_);
+            
+            join_req req = { 0 };
             printf("请输入你要加入的房间id：");
-            join_game_req req = { 0 };
             scanf("%d", &req.gameid);
-            send_message(MSG_JOIN_GAME, &req, sizeof(req));
+            send_message(MSG_JOIN_REQ, &req, sizeof(req));
             break;
         }
-        case MSG_JOIN_GAME:
+        case MSG_JOIN_RSP:
         {
-            join_game_rsp* rsp = (join_game_rsp*)_msg->body;
+            join_rsp* rsp = (join_rsp*)_msg->body;
             assert(rsp->result == 0);
             printf("加入房间成功\n");
+            break;
+        }
+        case MSG_JOIN_NTF:
+        {
+            join_ntf* ntf = (join_ntf*)_msg->body;
+            printf("玩家[%d]-%s 加入房间\n", ntf->userid, ntf->name);
+            break;
+        }
+        case MSG_ACTION_RSP:
+        {
+            action_rsp* rsp = (action_rsp*)_msg->body;
+            assert(rsp->result == 0);
+            break;
+        }
+        case MSG_ACTION_NTF:
+        {
+            join_ntf* ntf = (join_ntf*)_msg->body;
+            printf("玩家[%d]-%s 加入房间\n", ntf->userid, ntf->name);
+            break;
+        }
+        case MSG_STATUS_NTF:
+        {
+            status_ntf* ntf = (status_ntf*)_msg->body;
+            if (ntf->state == STATE_WAITING) {
+                printf("等待对手加入\n");
+                return;
+            }
+
+            draw_chesses(ntf->chesses);
+            if (ntf->state == STATE_FINISH) {
+                printf("游戏结束，玩家[%d]-%s胜利\n", ntf->userid, ntf->name);
+                return;
+            }
+
+            if (ntf->state == STATE_PLAYING) {
+                if (userid_ != ntf->userid) {
+                    printf("等待玩家[%d]-%s下棋\n", ntf->userid, ntf->name);
+                    return;
+                }
+                
+                action_req req = { 0 };
+                while (true)
+                {
+                    printf("轮到你下棋，请输入坐标(x,y)：");
+                    scanf("%d,%d", &req.row, &req.col);
+                    if (check_valid(ntf->chesses, req.row, req.col)) {
+                        break;
+                    }
+                    printf("你的输入无效，请重新输入\n");
+                }
+                send_message(MSG_ACTION_REQ, &req, sizeof(req));
+            }
+            
             break;
         }
         default:

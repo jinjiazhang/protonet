@@ -5,6 +5,7 @@
 
 #include "inetwork.h"
 #include "proto.h"
+#include "utils.h"
 
 class server : public imanager {
     class gobang;
@@ -45,23 +46,111 @@ class server : public imanager {
         }
 
         int join(player* role) {
+            assert(players_.find(role->userid_) == players_.end());
+            role->game_ = this;
+            if (player1 == nullptr) {
+                player1 = role;
+            }
+            else if (player2 == nullptr) {
+                player2 = role;
+            }
+
+            join_ntf ntf = { 0 };
+            ntf.userid = role->userid_;
+            strcpy(ntf.name, role->name_.c_str());
+            broadcast(MSG_JOIN_NTF, &ntf, sizeof(ntf));
+
+            if (state_ == STATE_WAITING && player1 && player2) {
+                state_ = STATE_PLAYING;
+                sync_status();
+            }
+
+            players_.insert(std::make_pair(role->userid_, role));
             return 0;
         }
 
         int quit(player* role) {
             return 0;
         }
+
+        int action(player* role, int row, int col) {
+            if (state_ != STATE_PLAYING) {
+                return -1001;
+            }
+            
+            player* current = (hand_num % 2 == 0) ? player1 : player2;
+            if (role != current) {
+                return -1002;
+            }
+
+            if (!check_valid(chesses_, row, col)) {
+                return -1003;
+            }
+
+            int index = (row - 1) * 15 + (col - 1);
+            chesses_[index] = ++hand_num;
+
+            action_ntf ntf = { 0 };
+            ntf.userid = current->userid_;
+            strcpy(ntf.name, current->name_.c_str());
+            ntf.row = row;
+            ntf.col = col;
+            broadcast(MSG_ACTION_NTF, &ntf, sizeof(ntf));
+
+            if (check_result(chesses_)) {
+                state_ = STATE_FINISH;
+            }
+            sync_status();
+        }
+
+        void broadcast(int msgid, void* body, int len) {
+            auto it = players_.begin();
+            for (; it != players_.end(); ++it) {
+                it->second->send_message(msgid, body, len);
+            }
+        }
+
+        void sync_status(player* role = nullptr) {
+            status_ntf ntf = { 0 };
+            ntf.gameid = gameid_;
+            ntf.state = state_;
+            memcpy(ntf.chesses, chesses_, sizeof(ntf.chesses));
+            if (state_ == STATE_PLAYING) {
+                player* current = (hand_num % 2 == 0) ? player1 : player2;
+                ntf.userid = current->userid_;
+                strcpy(ntf.name, current->name_.c_str());
+            }
+            else if (state_ == STATE_FINISH) {
+                player* winner = (hand_num % 2 == 1) ? player1 : player2;
+                ntf.userid = winner->userid_;
+                strcpy(ntf.name, winner->name_.c_str());
+            }
+
+            if (role != nullptr) {
+                role->send_message(MSG_STATUS_NTF, &ntf, sizeof(ntf));
+            }
+            else {
+                broadcast(MSG_STATUS_NTF, &ntf, sizeof(ntf));
+            }
+        }
+
     private:
         friend class server;
         server* server_ = nullptr;
-        int gameid_;
+        int gameid_ = 0;
+        int state_ = STATE_WAITING;
+        int hand_num = 0;
+        char chesses_[255] = { 0 };
+        player* player1 = nullptr;
+        player* player2 = nullptr;
+        std::map<int, player*> players_;
     };
 
 public:
     void run() {
         network_ = create_network();
         network_->listen(this, "127.0.0.1", 8086);
-        printf("服务器启动成功\n");
+        printf("服务器启动成功，等待客户端连接\n");
 
         while (!closed_)
             network_->update(10);
@@ -106,7 +195,7 @@ public:
 
         player* role = it->second;
         switch (_msg->msgid) {
-        case MSG_LOGIN: {
+        case MSG_LOGIN_REQ: {
             assert(role == nullptr);
             login_req* req = (login_req*)_msg->body;
             role = new player(this);
@@ -117,14 +206,14 @@ public:
             login_rsp rsp = { 0 };
             rsp.userid = role->userid_;
             strcpy(rsp.name, role->name_.c_str());
-            send_message(number, MSG_LOGIN, &rsp, sizeof(rsp));
+            send_message(number, MSG_LOGIN_RSP, &rsp, sizeof(rsp));
             printf("玩家[%d]-%s 登录成功\n", role->userid_, role->name_.c_str());
             break;
         }
-        case MSG_JOIN_GAME: {
+        case MSG_JOIN_REQ: {
             assert(role != nullptr);
             assert(role->game_ == nullptr);
-            join_game_req* req = (join_game_req*)_msg->body;
+            join_req* req = (join_req*)_msg->body;
             assert(req->gameid > 0);
             auto it = games_.find(req->gameid);
             gobang* game = it != games_.end() ? it->second : nullptr;
@@ -134,11 +223,22 @@ public:
                 games_.insert(std::make_pair(game->gameid_, game));
             }
 
-            join_game_rsp rsp = { 0 };
+            join_rsp rsp = { 0 };
             rsp.result = game->join(role);
             assert(rsp.result == 0);
-            send_message(number, MSG_JOIN_GAME, &rsp, sizeof(rsp));
+            send_message(number, MSG_JOIN_RSP, &rsp, sizeof(rsp));
+            game->sync_status(role);
             printf("玩家[%d]-%s 加入游戏(%d)\n", role->userid_, role->name_.c_str(), game->gameid_);
+            break;
+        }
+        case MSG_ACTION_REQ: {
+            assert(role != nullptr);
+            assert(role->game_ != nullptr);
+            action_req* req = (action_req*)_msg->body;
+            gobang* game = role->game_;
+            action_rsp rsp = { 0 };
+            rsp.result = game->action(role, req->row, req->col);
+            send_message(number, MSG_ACTION_RSP, &rsp, sizeof(rsp));
             break;
         }
         default: {
