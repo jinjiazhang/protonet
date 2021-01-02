@@ -151,7 +151,7 @@ public:
     void run() {
         network_ = create_network();
         network_->listen(this, "127.0.0.1", 8086);
-        printf("服务器启动成功，等待客户端连接\n");
+        printf("服务器已启动，等待客户端连接\n");
 
         while (!closed_)
             network_->update(10);
