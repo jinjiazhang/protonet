@@ -97,10 +97,11 @@ class server : public imanager {
             ntf.col = col;
             broadcast(MSG_ACTION_NTF, &ntf, sizeof(ntf));
 
-            if (check_result(chesses_)) {
+            if (check_result(chesses_, row, col)) {
                 state_ = STATE_FINISH;
             }
             sync_status();
+            return 0;
         }
 
         void broadcast(int msgid, void* body, int len) {

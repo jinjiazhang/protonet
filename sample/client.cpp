@@ -25,7 +25,7 @@ public:
         printf("连接服务器成功\n");
 
         login_req req = { 0 };
-        printf("请给自己起个名字：");
+        printf("请先给自己起个名字：");
         scanf("%s", req.name);
         send_message(MSG_LOGIN_REQ, &req, sizeof(req));
     }
@@ -75,8 +75,8 @@ public:
         }
         case MSG_ACTION_NTF:
         {
-            join_ntf* ntf = (join_ntf*)_msg->body;
-            printf("玩家[%d]-%s 加入房间\n", ntf->userid, ntf->name);
+            action_ntf* ntf = (action_ntf*)_msg->body;
+            printf("玩家[%d]-%s 下了(%d,%d)\n", ntf->userid, ntf->name, ntf->row, ntf->col);
             break;
         }
         case MSG_STATUS_NTF:
