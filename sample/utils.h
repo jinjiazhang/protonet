@@ -62,19 +62,29 @@ bool check_result(char chesses[], int row, int col) {
     return false;
 }
 
+#if defined(__linux__) || defined(__APPLE__)
+#define CHESS_BOARD "╂-"
+#define BLACK_CHESS "●-"
+#define WHITE_CHESS "○-"
+#else
+#define CHESS_BOARD "╂-"
+#define BLACK_CHESS "●"
+#define WHITE_CHESS "○"
+#endif
+
 void draw_chesses(char chesses[]) {
     for (int row = 1; row <= 15; row++) {
         for (int col = 1; col <= 15; col++) {
             int index = (row - 1) * 15 + (col - 1);
             int value = chesses[index];
             if (value == 0) {
-                printf("╂-");
+                printf(CHESS_BOARD);
             }
             else if (value % 2 == 0) {
-                printf("●");
+                printf(BLACK_CHESS);
             } 
             else {
-                printf("○");
+                printf(WHITE_CHESS);
             }
         }
         printf("\n");
