@@ -47,14 +47,14 @@ void connector::on_event(int events)
     }
 
     connected_ = true;
-    manager_->on_accept(number_, 0);
+    manager_->on_accept(netid_, 0);
     session::on_event(events);
 }
 
 void connector::on_error(int error)
 {
-    manager_->on_accept(number_, error);
-    network_->close(number_);
+    manager_->on_accept(netid_, error);
+    network_->close(netid_);
 }
 
 void connector::close()

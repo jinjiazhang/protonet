@@ -15,9 +15,9 @@ class server : public imanager {
             server_ = svr;
         }
 
-        void setup(int userid, int number, char* name) {
+        void setup(int userid, int netid, char* name) {
             userid_ = userid;
-            number_ = number;
+            netid_ = netid;
             strcpy(name_, name);
         }
 
@@ -26,7 +26,7 @@ class server : public imanager {
         }
 
         void send_message(int msgid, void* body, int len) {
-            server_->send_message(number_, msgid, body, len);
+            server_->send_message(netid_, msgid, body, len);
         }
 
     private:
@@ -35,7 +35,7 @@ class server : public imanager {
         gobang* game_ = nullptr;
         
         int userid_ = 0;
-        int number_ = 0;
+        int netid_ = 0;
         char name_[32];
     };
 
@@ -176,30 +176,30 @@ public:
             network_->update(10);
     }
 
-    void send_message(int number, int msgid, void* body, int len) {
+    void send_message(int netid, int msgid, void* body, int len) {
         iobuf bufs[2];
         bufs[0].data = &msgid;
         bufs[0].len = sizeof(msgid);
         bufs[1].data = body;
         bufs[1].len = len;
-        network_->sendv(number, bufs, 2);
+        network_->sendv(netid, bufs, 2);
     }
 
-    void on_accept(int number, int error) override {
-        clients_.insert(std::make_pair(number, nullptr));
-        printf("连接[%d] 已接受\n", number);
+    void on_accept(int netid, int error) override {
+        clients_.insert(std::make_pair(netid, nullptr));
+        printf("连接[%d] 已接受\n", netid);
     }
 
-    void on_closed(int number, int error) override {
-        printf("连接[%d] 已关闭\n", number);
-        auto it = clients_.find(number);
+    void on_closed(int netid, int error) override {
+        printf("连接[%d] 已关闭\n", netid);
+        auto it = clients_.find(netid);
         assert(it != clients_.end());
         if (it->second != nullptr) {
             on_logout(it->second);
             delete it->second;
         }
 
-        clients_.erase(number);
+        clients_.erase(netid);
         if (clients_.size() == 0) {
             closed_ = true;
         }
@@ -226,9 +226,9 @@ public:
         delete game;
     }
 
-    void on_package(int number, char* data, int len) override {
+    void on_package(int netid, char* data, int len) override {
         message* _msg = (message*)data;
-        auto it = clients_.find(number);
+        auto it = clients_.find(netid);
         assert(it != clients_.end());
 
         player* role = it->second;
@@ -237,14 +237,14 @@ public:
             assert(role == nullptr);
             login_req* req = (login_req*)_msg->body;
             role = new player(this);
-            role->setup(++last_userid_, number, req->name);
+            role->setup(++last_userid_, netid, req->name);
             it->second = role;
             players_.insert(std::make_pair(role->userid_, role));
 
             login_rsp rsp = { 0 };
             rsp.userid = role->userid_;
             strcpy(rsp.name, role->name_);
-            send_message(number, MSG_LOGIN_RSP, &rsp, sizeof(rsp));
+            send_message(netid, MSG_LOGIN_RSP, &rsp, sizeof(rsp));
             printf("玩家[%d]-%s 登录成功\n", role->userid_, role->name_);
             break;
         }
@@ -264,7 +264,7 @@ public:
             join_rsp rsp = { 0 };
             rsp.result = game->join(role);
             assert(rsp.result == 0);
-            send_message(number, MSG_JOIN_RSP, &rsp, sizeof(rsp));
+            send_message(netid, MSG_JOIN_RSP, &rsp, sizeof(rsp));
             game->sync_status(role);
             printf("玩家[%d]-%s 加入游戏(%d)\n", role->userid_, role->name_, game->gameid_);
             break;
@@ -276,7 +276,7 @@ public:
             gobang* game = role->game_;
             action_rsp rsp = { 0 };
             rsp.result = game->action(role, req->row, req->col);
-            send_message(number, MSG_ACTION_RSP, &rsp, sizeof(rsp));
+            send_message(netid, MSG_ACTION_RSP, &rsp, sizeof(rsp));
             break;
         }
         default: {

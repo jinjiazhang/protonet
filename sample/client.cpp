@@ -12,16 +12,16 @@ public:
     void run()
     {
         network_ = create_network();
-        int number = network_->connect(this, "127.0.0.1", 8086);
+        network_->connect(this, "127.0.0.1", 8086);
 
         while (!closed_)
             network_->update(10);
     }
 
-    void on_accept(int number, int error) override
+    void on_accept(int netid, int error) override
     {
         assert(error == 0);
-        number_ = number;
+        netid_ = netid;
         printf("连接服务器成功\n");
 
         login_req req = { 0 };
@@ -30,12 +30,12 @@ public:
         send_message(MSG_LOGIN_REQ, &req, sizeof(req));
     }
 
-    void on_closed(int number, int error) override
+    void on_closed(int netid, int error) override
     {
         closed_ = true;
     }
 
-    void on_package(int number, char* data, int len) override
+    void on_package(int netid, char* data, int len) override
     {
         message* _msg = (message*)data;
         switch (_msg->msgid)
@@ -140,13 +140,13 @@ public:
         bufs[0].len = sizeof(msgid);
         bufs[1].data = body;
         bufs[1].len = len;
-        network_->sendv(number_, bufs, 2);
+        network_->sendv(netid_, bufs, 2);
     }
 
 private:
     inetwork* network_ = nullptr;
     bool closed_ = false;
-    int number_ = 0;
+    int netid_ = 0;
     int userid_ = 0;
 };
 

@@ -39,8 +39,8 @@ void session::on_event(int events)
 
 void session::on_error(int error)
 {
-    manager_->on_closed(number_, error);
-    network_->close(number_);
+    manager_->on_closed(netid_, error);
+    network_->close(netid_);
 }
 
 void session::on_readable()
@@ -227,7 +227,7 @@ void session::dispatch()
         }
 
         recvbuf_.pop_data(head_len);
-        manager_->on_package(number_, recvbuf_.data(), body_len);
+        manager_->on_package(netid_, recvbuf_.data(), body_len);
         recvbuf_.pop_data(body_len);
     }
 
