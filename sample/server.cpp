@@ -18,7 +18,11 @@ class server : public imanager {
         void setup(int userid, int number, char* name) {
             userid_ = userid;
             number_ = number;
-            name_ = name;
+            strcpy(name_, name);
+        }
+
+        void set_game(gobang* game) {
+            game_ = game;
         }
 
         void send_message(int msgid, void* body, int len) {
@@ -32,7 +36,7 @@ class server : public imanager {
         
         int userid_ = 0;
         int number_ = 0;
-        std::string name_;
+        char name_[32];
     };
 
     class gobang {
@@ -47,7 +51,7 @@ class server : public imanager {
 
         int join(player* role) {
             assert(players_.find(role->userid_) == players_.end());
-            role->game_ = this;
+            role->set_game(this);
             if (player1 == nullptr) {
                 player1 = role;
             }
@@ -57,7 +61,7 @@ class server : public imanager {
 
             join_ntf ntf = { 0 };
             ntf.userid = role->userid_;
-            strcpy(ntf.name, role->name_.c_str());
+            strcpy(ntf.name, role->name_);
             broadcast(MSG_JOIN_NTF, &ntf, sizeof(ntf));
 
             if (state_ == STATE_WAITING && player1 && player2) {
@@ -70,6 +74,21 @@ class server : public imanager {
         }
 
         int quit(player* role) {
+            assert(players_.find(role->userid_) != players_.end());
+            role->set_game(nullptr);
+            players_.erase(role->userid_);
+
+            quit_ntf ntf = { 0 };
+            ntf.userid = role->userid_;
+            strcpy(ntf.name, role->name_);
+            broadcast(MSG_QUIT_NTF, &ntf, sizeof(ntf));
+
+            if (role == player1 || role == player2) {
+                player1 = player2 = nullptr;
+                state_ = STATE_ABORTED;
+                sync_status();
+            }
+
             return 0;
         }
 
@@ -92,7 +111,7 @@ class server : public imanager {
 
             action_ntf ntf = { 0 };
             ntf.userid = current->userid_;
-            strcpy(ntf.name, current->name_.c_str());
+            strcpy(ntf.name, current->name_);
             ntf.row = row;
             ntf.col = col;
             broadcast(MSG_ACTION_NTF, &ntf, sizeof(ntf));
@@ -119,12 +138,12 @@ class server : public imanager {
             if (state_ == STATE_PLAYING) {
                 player* current = (hand_num % 2 == 0) ? player1 : player2;
                 ntf.userid = current->userid_;
-                strcpy(ntf.name, current->name_.c_str());
+                strcpy(ntf.name, current->name_);
             }
             else if (state_ == STATE_FINISH) {
                 player* winner = (hand_num % 2 == 1) ? player1 : player2;
                 ntf.userid = winner->userid_;
-                strcpy(ntf.name, winner->name_.c_str());
+                strcpy(ntf.name, winner->name_);
             }
 
             if (role != nullptr) {
@@ -172,21 +191,39 @@ public:
     }
 
     void on_closed(int number, int error) override {
-        clients_.erase(number);
         printf("连接[%d] 已关闭\n", number);
-
-        auto it = players_.find(number);
-        if (it != players_.end()) {
+        auto it = clients_.find(number);
+        assert(it != clients_.end());
+        if (it->second != nullptr) {
             on_logout(it->second);
+            delete it->second;
         }
 
+        clients_.erase(number);
         if (clients_.size() == 0) {
             closed_ = true;
         }
     }
 
     void on_logout(player* role) {
+        if (role->game_ != nullptr)
+        {
+            gobang* game = role->game_;
+            game->quit(role);
+            printf("玩家[%d]-%s 退出游戏(%d)\n", role->userid_, role->name_, game->gameid_);
 
+            if (game->players_.size() == 0) {
+                on_dissolve(game);
+            }
+        }
+        assert(players_.find(role->userid_) != players_.end());
+        players_.erase(role->userid_);
+    }
+
+    void on_dissolve(gobang* game) {
+        printf("房间[%d] 已解散\n", game->gameid_);
+        games_.erase(game->gameid_);
+        delete game;
     }
 
     void on_package(int number, char* data, int len) override {
@@ -201,14 +238,14 @@ public:
             login_req* req = (login_req*)_msg->body;
             role = new player(this);
             role->setup(++last_userid_, number, req->name);
-            players_.insert(std::make_pair(role->userid_, role));
             it->second = role;
+            players_.insert(std::make_pair(role->userid_, role));
 
             login_rsp rsp = { 0 };
             rsp.userid = role->userid_;
-            strcpy(rsp.name, role->name_.c_str());
+            strcpy(rsp.name, role->name_);
             send_message(number, MSG_LOGIN_RSP, &rsp, sizeof(rsp));
-            printf("玩家[%d]-%s 登录成功\n", role->userid_, role->name_.c_str());
+            printf("玩家[%d]-%s 登录成功\n", role->userid_, role->name_);
             break;
         }
         case MSG_JOIN_REQ: {
@@ -229,7 +266,7 @@ public:
             assert(rsp.result == 0);
             send_message(number, MSG_JOIN_RSP, &rsp, sizeof(rsp));
             game->sync_status(role);
-            printf("玩家[%d]-%s 加入游戏(%d)\n", role->userid_, role->name_.c_str(), game->gameid_);
+            printf("玩家[%d]-%s 加入游戏(%d)\n", role->userid_, role->name_, game->gameid_);
             break;
         }
         case MSG_ACTION_REQ: {

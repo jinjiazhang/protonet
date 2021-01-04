@@ -7,6 +7,7 @@ enum {
     MSG_JOIN_REQ,
     MSG_JOIN_RSP,
     MSG_JOIN_NTF,
+    MSG_QUIT_NTF,
     MSG_ACTION_REQ,
     MSG_ACTION_RSP,
     MSG_ACTION_NTF,
@@ -42,6 +43,11 @@ struct join_ntf {
     char name[32];
 };
 
+struct quit_ntf {
+    int userid;
+    char name[32];
+};
+
 struct action_req {
     int row;
     int col;
@@ -62,6 +68,7 @@ enum {
     STATE_WAITING,
     STATE_PLAYING,
     STATE_FINISH,
+    STATE_ABORTED,
 };
 
 struct status_ntf {

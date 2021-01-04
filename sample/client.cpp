@@ -67,6 +67,12 @@ public:
             printf("玩家[%d]-%s 加入房间\n", ntf->userid, ntf->name);
             break;
         }
+        case MSG_QUIT_NTF:
+        {
+            quit_ntf* ntf = (quit_ntf*)_msg->body;
+            printf("玩家[%d]-%s 退出房间\n", ntf->userid, ntf->name);
+            break;
+        }
         case MSG_ACTION_RSP:
         {
             action_rsp* rsp = (action_rsp*)_msg->body;
@@ -84,6 +90,11 @@ public:
             status_ntf* ntf = (status_ntf*)_msg->body;
             if (ntf->state == STATE_WAITING) {
                 printf("等待对手加入\n");
+                return;
+            }
+
+            if (ntf->state == STATE_ABORTED) {
+                printf("有棋手退出，游戏中止\n");
                 return;
             }
 
