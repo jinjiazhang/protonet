@@ -1,4 +1,4 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
@@ -22,10 +22,10 @@ public:
     {
         assert(error == 0);
         number_ = number;
-        printf("Á¬½Ó·þÎñÆ÷³É¹¦\n");
+        printf("è¿žæŽ¥æœåŠ¡å™¨æˆåŠŸ\n");
 
         login_req req = { 0 };
-        printf("ÇëÏÈ¸ø×Ô¼ºÆð¸öÃû×Ö£º");
+        printf("è¯·å…ˆç»™è‡ªå·±èµ·ä¸ªåå­—ï¼š");
         scanf("%s", req.name);
         send_message(MSG_LOGIN_REQ, &req, sizeof(req));
     }
@@ -46,10 +46,10 @@ public:
             assert(rsp->result == 0);
             
             userid_ = rsp->userid;
-            printf("µÇÂ¼ÓÎÏ·³É¹¦£¬ÄãµÄIDÎª%d\n", userid_);
+            printf("ç™»å½•æ¸¸æˆæˆåŠŸï¼Œä½ çš„IDä¸º%d\n", userid_);
             
             join_req req = { 0 };
-            printf("ÇëÊäÈëÄãÒª¼ÓÈëµÄ·¿¼äid£º");
+            printf("è¯·è¾“å…¥ä½ è¦åŠ å…¥çš„æˆ¿é—´idï¼š");
             scanf("%d", &req.gameid);
             send_message(MSG_JOIN_REQ, &req, sizeof(req));
             break;
@@ -58,19 +58,19 @@ public:
         {
             join_rsp* rsp = (join_rsp*)_msg->body;
             assert(rsp->result == 0);
-            printf("¼ÓÈë·¿¼ä³É¹¦\n");
+            printf("åŠ å…¥æˆ¿é—´æˆåŠŸ\n");
             break;
         }
         case MSG_JOIN_NTF:
         {
             join_ntf* ntf = (join_ntf*)_msg->body;
-            printf("Íæ¼Ò[%d]-%s ¼ÓÈë·¿¼ä\n", ntf->userid, ntf->name);
+            printf("çŽ©å®¶[%d]-%s åŠ å…¥æˆ¿é—´\n", ntf->userid, ntf->name);
             break;
         }
         case MSG_QUIT_NTF:
         {
             quit_ntf* ntf = (quit_ntf*)_msg->body;
-            printf("Íæ¼Ò[%d]-%s ÍË³ö·¿¼ä\n", ntf->userid, ntf->name);
+            printf("çŽ©å®¶[%d]-%s é€€å‡ºæˆ¿é—´\n", ntf->userid, ntf->name);
             break;
         }
         case MSG_ACTION_RSP:
@@ -82,43 +82,43 @@ public:
         case MSG_ACTION_NTF:
         {
             action_ntf* ntf = (action_ntf*)_msg->body;
-            printf("Íæ¼Ò[%d]-%s ÏÂÁË(%d,%d)\n", ntf->userid, ntf->name, ntf->row, ntf->col);
+            printf("çŽ©å®¶[%d]-%s ä¸‹äº†(%d,%d)\n", ntf->userid, ntf->name, ntf->row, ntf->col);
             break;
         }
         case MSG_STATUS_NTF:
         {
             status_ntf* ntf = (status_ntf*)_msg->body;
             if (ntf->state == STATE_WAITING) {
-                printf("µÈ´ý¶ÔÊÖ¼ÓÈë\n");
+                printf("ç­‰å¾…å¯¹æ‰‹åŠ å…¥\n");
                 return;
             }
 
             if (ntf->state == STATE_ABORTED) {
-                printf("ÓÐÆåÊÖÍË³ö£¬ÓÎÏ·ÖÐÖ¹\n");
+                printf("æœ‰æ£‹æ‰‹é€€å‡ºï¼Œæ¸¸æˆä¸­æ­¢\n");
                 return;
             }
 
             draw_chesses(ntf->chesses);
             if (ntf->state == STATE_FINISH) {
-                printf("ÓÎÏ·½áÊø£¬Íæ¼Ò[%d]-%sÊ¤Àû\n", ntf->userid, ntf->name);
+                printf("æ¸¸æˆç»“æŸï¼ŒçŽ©å®¶[%d]-%sèƒœåˆ©\n", ntf->userid, ntf->name);
                 return;
             }
 
             if (ntf->state == STATE_PLAYING) {
                 if (userid_ != ntf->userid) {
-                    printf("µÈ´ýÍæ¼Ò[%d]-%sÏÂÆå\n", ntf->userid, ntf->name);
+                    printf("ç­‰å¾…çŽ©å®¶[%d]-%sä¸‹æ£‹\n", ntf->userid, ntf->name);
                     return;
                 }
                 
                 action_req req = { 0 };
                 while (true)
                 {
-                    printf("ÂÖµ½ÄãÏÂÆå£¬ÇëÊäÈë×ø±ê(x,y)£º");
+                    printf("è½®åˆ°ä½ ä¸‹æ£‹ï¼Œè¯·è¾“å…¥åæ ‡(x,y)ï¼š");
                     scanf("%d,%d", &req.row, &req.col);
                     if (check_valid(ntf->chesses, req.row, req.col)) {
                         break;
                     }
-                    printf("ÄãµÄÊäÈëÎÞÐ§£¬ÇëÖØÐÂÊäÈë\n");
+                    printf("ä½ çš„è¾“å…¥æ— æ•ˆï¼Œè¯·é‡æ–°è¾“å…¥\n");
                 }
                 send_message(MSG_ACTION_REQ, &req, sizeof(req));
             }
@@ -127,7 +127,7 @@ public:
         }
         default:
         {
-            printf("Î´ÖªµÄÏûÏ¢id(%d)\n", _msg->msgid);
+            printf("æœªçŸ¥çš„æ¶ˆæ¯id(%d)\n", _msg->msgid);
             break;
         }
         }

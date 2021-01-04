@@ -1,4 +1,4 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 #include <map>
@@ -170,7 +170,7 @@ public:
     void run() {
         network_ = create_network();
         network_->listen(this, "127.0.0.1", 8086);
-        printf("·þÎñÆ÷ÒÑÆô¶¯£¬µÈ´ý¿Í»§¶ËÁ¬½Ó\n");
+        printf("æœåŠ¡å™¨å·²å¯åŠ¨ï¼Œç­‰å¾…å®¢æˆ·ç«¯è¿žæŽ¥\n");
 
         while (!closed_)
             network_->update(10);
@@ -187,11 +187,11 @@ public:
 
     void on_accept(int number, int error) override {
         clients_.insert(std::make_pair(number, nullptr));
-        printf("Á¬½Ó[%d] ÒÑ½ÓÊÜ\n", number);
+        printf("è¿žæŽ¥[%d] å·²æŽ¥å—\n", number);
     }
 
     void on_closed(int number, int error) override {
-        printf("Á¬½Ó[%d] ÒÑ¹Ø±Õ\n", number);
+        printf("è¿žæŽ¥[%d] å·²å…³é—­\n", number);
         auto it = clients_.find(number);
         assert(it != clients_.end());
         if (it->second != nullptr) {
@@ -210,7 +210,7 @@ public:
         {
             gobang* game = role->game_;
             game->quit(role);
-            printf("Íæ¼Ò[%d]-%s ÍË³öÓÎÏ·(%d)\n", role->userid_, role->name_, game->gameid_);
+            printf("çŽ©å®¶[%d]-%s é€€å‡ºæ¸¸æˆ(%d)\n", role->userid_, role->name_, game->gameid_);
 
             if (game->players_.size() == 0) {
                 on_dissolve(game);
@@ -221,7 +221,7 @@ public:
     }
 
     void on_dissolve(gobang* game) {
-        printf("·¿¼ä[%d] ÒÑ½âÉ¢\n", game->gameid_);
+        printf("æˆ¿é—´[%d] å·²è§£æ•£\n", game->gameid_);
         games_.erase(game->gameid_);
         delete game;
     }
@@ -245,7 +245,7 @@ public:
             rsp.userid = role->userid_;
             strcpy(rsp.name, role->name_);
             send_message(number, MSG_LOGIN_RSP, &rsp, sizeof(rsp));
-            printf("Íæ¼Ò[%d]-%s µÇÂ¼³É¹¦\n", role->userid_, role->name_);
+            printf("çŽ©å®¶[%d]-%s ç™»å½•æˆåŠŸ\n", role->userid_, role->name_);
             break;
         }
         case MSG_JOIN_REQ: {
@@ -266,7 +266,7 @@ public:
             assert(rsp.result == 0);
             send_message(number, MSG_JOIN_RSP, &rsp, sizeof(rsp));
             game->sync_status(role);
-            printf("Íæ¼Ò[%d]-%s ¼ÓÈëÓÎÏ·(%d)\n", role->userid_, role->name_, game->gameid_);
+            printf("çŽ©å®¶[%d]-%s åŠ å…¥æ¸¸æˆ(%d)\n", role->userid_, role->name_, game->gameid_);
             break;
         }
         case MSG_ACTION_REQ: {
@@ -280,7 +280,7 @@ public:
             break;
         }
         default: {
-            printf("Î´ÖªµÄÏûÏ¢id(%d)\n", _msg->msgid);
+            printf("æœªçŸ¥çš„æ¶ˆæ¯id(%d)\n", _msg->msgid);
             break;
         }
         }
