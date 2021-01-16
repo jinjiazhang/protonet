@@ -42,7 +42,7 @@ void connector::on_event(int events)
 
     if (!session::init(connectfd_))
     {
-        on_error(NET_INNER_ERROR);
+        on_error(EOTHER);
         return;
     }
 

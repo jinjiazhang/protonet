@@ -61,7 +61,7 @@ void session::on_readable()
         
         if (recv_len == 0)
         {
-            on_error(NET_ERROR_NONE);
+            on_error(0);
             return;
         }
 
@@ -88,7 +88,7 @@ void session::on_writable()
 
         if (send_len == 0)
         {
-            on_error(NET_ERROR_NONE);
+            on_error(0);
             return;
         }
 
@@ -138,7 +138,7 @@ void session::transmit(iovec* iov, int iovcnt)
     {
         if (!sendbuf_.push_data(iov, iovcnt, 0))
         {
-            on_error(NET_BUFF_OVERSIZE);
+            on_error(EOVERFLOW);
         }
         return;
     }
@@ -155,7 +155,7 @@ void session::transmit(iovec* iov, int iovcnt)
 
         if (!sendbuf_.push_data(iov, iovcnt, 0))
         {
-            on_error(NET_BUFF_OVERSIZE);
+            on_error(EOVERFLOW);
             return;
         }
         network_->add_event(this, fd_, EVENT_WRITE);
@@ -164,7 +164,7 @@ void session::transmit(iovec* iov, int iovcnt)
 
     if (send_len == 0)
     {
-        on_error(NET_ERROR_NONE);
+        on_error(0);
         return;
     }
 
@@ -178,7 +178,7 @@ void session::transmit(iovec* iov, int iovcnt)
     {
         if (!sendbuf_.push_data(iov, iovcnt, send_len))
         {
-            on_error(NET_BUFF_OVERSIZE);
+            on_error(EOVERFLOW);
             return;
         }
         network_->add_event(this, fd_, EVENT_WRITE);
@@ -205,7 +205,7 @@ void session::dispatch()
         int head_len = decode_head(&body_len, recvbuf_.data(), recvbuf_.size());
         if (head_len < 0)
         {
-            on_error(NET_HEAD_ERROR);
+            on_error(EBADMSG);
             return;
         }
 
@@ -216,7 +216,7 @@ void session::dispatch()
 
         if (body_len <= 0 || body_len > max_buffer_size)
         {
-            on_error(NET_BODY_OVERSIZE);
+            on_error(EMSGSIZE);
             return;
         }
 
