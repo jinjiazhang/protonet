@@ -34,3 +34,10 @@ struct inetwork
 
 inetwork* create_network();
 ```
+
+## Sample
+Gobang Online Game（五子棋联机游戏）
+![avatar](screenshot/server.png)
+![avatar](screenshot/client1.png)
+![avatar](screenshot/client2.png)
+![avatar](screenshot/client3.png)
